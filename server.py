@@ -1,39 +1,26 @@
 from flask import Flask
-import poplib
-from email import parser
+from flask import jsonify
 import json
 import os
-app = Flask(__name__)
+import redis
 
-messages = []
+app = Flask(__name__)
+r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 @app.route('/')
 def home():
 	return 'home'
 
-@app.route('/mail')
-def get_mail():
-	messages.extend(pop3_connect())
-	print(messages)
-	return json.dumps(messages)
+@app.route('/nextmessage')
+def get_next_message():
+	# assuming we are storing messages in a redis list called messages
+	# rpop removes right-end of list (least-recently added, queue)
+	new_message = r.rpop('messages')
 
-def pop3_connect():
-	pop_conn = poplib.POP3_SSL('pop.gmail.com')
-	pop_conn.user(os.environ['HEARTBOT_USERNAME'])
-	pop_conn.pass_(os.environ['HEARTBOT_PASSWORD'])
-	messages = [pop_conn.retr(i) for i in range(1, len(pop_conn.list()[1]) + 1)]
+	if new_message==None:
+		return jsonify({})
 
-	joined_mssgs=[]	
-	for mssg in messages:
-		decoded_items=[]
-		for item in mssg[1]:
-			decoded_items.append(item.decode(encoding='UTF-8'))
-		joined_mssgs.append("\n".join(decoded_items))
-
-	parsed_mssgs = [parser.Parser().parsestr(mssg) for mssg in joined_mssgs]
-	pop_conn.quit()
-	return [m['subject'] for m in parsed_mssgs]
-
+	return jsonify(json.loads(new_message.decode(encoding='UTF-8')))
 
 if __name__ == '__main__':
     app.run(debug=True)
