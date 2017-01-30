@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask import jsonify
 import json
 import os
@@ -9,7 +9,7 @@ r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 @app.route('/')
 def home():
-	return 'home'
+	return render_template('index.html')
 
 @app.route('/nextmessage')
 def get_next_message():
