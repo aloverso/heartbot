@@ -3,6 +3,7 @@ import sys
 import time
 import redis
 import poplib
+import json
 from email import parser
 
 def get_mail():
@@ -21,7 +22,7 @@ def get_mail():
     parsed_mssgs = [parser.Parser().parsestr(mssg) for mssg in joined_mssgs]
     pop_conn.quit()
 
-    ret = [{"subject": m['subject'], 'size': 0} for m in parsed_mssgs]
+    ret = [json.dumps({"subject": m['subject'], "size": 0}) for m in parsed_mssgs]
     return ret
 
 
