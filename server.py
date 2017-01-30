@@ -18,8 +18,9 @@ def get_next_message():
 	new_message = r.rpop('messages')
 
 	if new_message==None:
-		return jsonify({})
+		new_message = r.get('lastmessage')
 
+	r.set('lastmessage', new_message)
 	return jsonify(json.loads(new_message.decode(encoding='UTF-8')))
 
 if __name__ == '__main__':
