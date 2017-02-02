@@ -22,7 +22,15 @@ def get_mail():
     parsed_mssgs = [parser.Parser().parsestr(mssg) for mssg in joined_mssgs]
     pop_conn.quit()
 
-    ret = [json.dumps({"subject": m['subject'], "size": 0}) for m in parsed_mssgs]
+    def parse_msg(msg):
+        return {
+            "subject": msg.get("Subject"),
+            "date":    msg.get("Date"),
+            "size":    len(bytes(msg))
+        }
+
+    ret = [json.dumps(parse_msg(m)) for m in parsed_mssgs]
+
     return ret
 
 
