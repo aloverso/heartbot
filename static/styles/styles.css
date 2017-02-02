@@ -2,10 +2,31 @@ body {
 	font-family: 'Open Sans';
 	font-size: 16px;
 	color: white;
-	background: #162a49
+	background: #2d2e30;
 }
 
 h1 {
 	text-align: center;
 	font-size: 48px;
+}
+
+li {
+	list-style: none;
+}
+
+#subjectline {
+	position: absolute;
+}
+
+#heart{
+	stroke: #8A0707;
+	stroke-width: 1;
+	fill: #8A0707;
+}
+
+#heartecho{
+	stroke: #8A0707;
+	stroke-width: 1;
+	fill: #8A0707;
+	opacity: 0.7;
 }
