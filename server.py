@@ -16,12 +16,16 @@ def get_next_message():
 	# assuming we are storing messages in a redis list called messages
 	# rpop removes right-end of list (least-recently added, queue)
 	new_message = r.rpop('messages')
+	resend_old_message = False
 
 	if new_message==None:
 		new_message = r.get('lastmessage')
+		resend_old_message = True
 
 	r.set('lastmessage', new_message)
-	return jsonify(json.loads(new_message.decode(encoding='UTF-8')))
+	new_message_json = json.loads(new_message.decode(encoding='UTF-8'))
+	new_message_json['resend_old_message'] = resend_old_message
+	return jsonify(new_message_json)
 
 if __name__ == '__main__':
     app.run(debug=True)
