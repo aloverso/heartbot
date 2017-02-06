@@ -9,6 +9,10 @@ from email import parser
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 def get_mail():
+    """ fetches new messages from a gmail account using POP, then parses it
+    into a JSON blob and returns it:
+    {"subject": string, "date": string, "size": int, "sentiment": int} """
+
     pop_conn = poplib.POP3_SSL('pop.gmail.com')
     pop_conn.user(os.environ['HEARTBOT_USERNAME'])
     pop_conn.pass_(os.environ['HEARTBOT_PASSWORD'])
@@ -25,6 +29,8 @@ def get_mail():
     pop_conn.quit()
 
     def parse_msg(msg):
+        """ takes a msg object from Python's email parser and formats it into
+        a dictionary (which then becomes JSON that we can put in Redis) """
         analyzer = SentimentIntensityAnalyzer()
         subject = msg.get("Subject")
         return {
@@ -35,7 +41,6 @@ def get_mail():
         }
 
     ret = [json.dumps(parse_msg(m)) for m in parsed_mssgs]
-    print(ret)
 
     return ret
 

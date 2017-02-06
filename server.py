@@ -1,5 +1,4 @@
 import json
-import os
 import redis
 
 from flask import Flask, render_template
@@ -14,12 +13,13 @@ def home():
 
 @app.route('/nextmessage')
 def get_next_message():
+    """ fetches a message (as json blob) from a redis list and returns it """
     # assuming we are storing messages in a redis list called messages
     # rpop removes right-end of list (least-recently added, queue)
     new_message = r.rpop('messages')
     resend_old_message = False
 
-    if new_message==None:
+    if new_message is None:
         new_message = r.get('lastmessage')
         resend_old_message = True
 
