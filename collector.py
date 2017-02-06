@@ -6,6 +6,8 @@ import poplib
 import json
 from email import parser
 
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
 def get_mail():
     pop_conn = poplib.POP3_SSL('pop.gmail.com')
     pop_conn.user(os.environ['HEARTBOT_USERNAME'])
@@ -23,13 +25,17 @@ def get_mail():
     pop_conn.quit()
 
     def parse_msg(msg):
+        analyzer = SentimentIntensityAnalyzer()
+        subject = msg.get("Subject")
         return {
-            "subject": msg.get("Subject"),
-            "date":    msg.get("Date"),
-            "size":    len(bytes(msg))
+            "subject":   subject,
+            "date":      msg.get("Date"),
+            "size":      len(bytes(msg)),
+            "sentiment": analyzer.polarity_scores(subject)['compound']
         }
 
     ret = [json.dumps(parse_msg(m)) for m in parsed_mssgs]
+    print(ret)
 
     return ret
 
