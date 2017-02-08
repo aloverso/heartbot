@@ -95,6 +95,18 @@
     .attr("id", "heart")
     .attr("d", line(data));
 
+  // CREATE A LIST OF MESSAGES RECIEVED IN THE PAST HOUR
+  var past_hour = [];
+
+  // helper function for scaling
+  function getOffsets(selection) {
+    var selection_box = selection.node().getBBox();
+    var offsetX = parseFloat(selection_box["x"])+
+                  parseFloat(selection_box["width"]/2.0);
+    var offsetY = parseFloat(selection_box["y"])+
+                  parseFloat(selection_box["height"]/2.0);
+    return {"x":offsetX, "y":offsetY};
+  }
 
   // CHECK FOR NEW MESSAGES EVERY SECOND
   // -----------------------------------
@@ -107,6 +119,35 @@
       // this is non-ideal (doesn't preserve list after refresh)
       if (!res['resend_old_message'] || $('li').length==0) {
 
+        // add to our list
+        var info = {'size': parseInt(res['size']), 'secs':(new Date(res['date'])).getTime()}
+        past_hour.push(info);
+
+        // remove expired data and get current size
+        var total_bytes = 0;
+        for (var i=0; i<past_hour.length; i++) {
+          el = past_hour[i];
+          if ((new Date).getTime() - el['secs'] > 3600000) {
+            past_hour.splice(i, 1);
+          }
+          else {
+            total_bytes += el['size'];
+          }
+        }
+
+        var offsets_size = getOffsets(d3.select("path#heart"))
+        var scale = total_bytes/200000;
+        if (scale>1.8) {scale=1.8;}
+        if (scale<.1) {scale=.1;}
+
+        // scale heart based on size
+        d3.select("path#heart")
+            .transition()
+              .duration(2)
+              .attr('transform',"translate("+offsets_size['x']+ ","+offsets_size['y']+") "+
+                                "scale("+scale+") "+
+                                "translate(-"+offsets_size['x']+",-"+offsets_size['y']+ ")");
+
         $('#subjectline').prepend('<li>'+res['subject']+'</li>');
 
         // cycle through subject lines list to set opacity
@@ -114,7 +155,12 @@
         $("li").each(function(index) {
           var opacity = 1.0/(index+1);
           if (opacity > 0.033334) {
-            $(this).css('opacity', 1.0/(index+1));
+            if (index==0) {
+              $(this).css('opacity', 1);
+            }
+            else {
+              $(this).css('opacity', (0.8-.05*index));
+            }
           }
           else {
             $(this).remove();
@@ -122,21 +168,21 @@
         });
 
         // get appropriate piano note
-        sentiment = res['sentiment'] + 1; //convert to 0-2 scale instead of -1 to 1
-        sentiment_scaled = sentiment*all_notes.length/2;
+        var sentiment = res['sentiment'] + 1; //convert to 0-2 scale instead of -1 to 1
+        var sentiment_scaled = sentiment*all_notes.length/2;
         console.log(Math.round(sentiment_scaled));
-        note = all_notes[Math.round(sentiment_scaled)];
+        var note = all_notes[Math.round(sentiment_scaled)];
 
         piano.play(note['note'], note['octave'], 2);
 
+        var current_scale = 0;
+        setTimeout(function() {
+          current_scale = d3.transform(d3.select("path#heart").attr("transform"))['scale'][0];
+        }, 100)
+
         setTimeout(function() {
 
-          var selection = d3.select('path#heart');
-          var selection_box = selection.node().getBBox();
-          var offsetX = parseFloat(selection_box["x"])+
-                        parseFloat(selection_box["width"]/2.0);
-          var offsetY = parseFloat(selection_box["y"])+
-                        parseFloat(selection_box["height"]/2.0);
+          var offsets = getOffsets(d3.select('path#heart'));
 
           var scale_factor = 1.2;
 
@@ -144,16 +190,16 @@
             .transition()
               .duration(500)
               .ease('elastic')
-              .attr('transform',"translate("+offsetX+ ","+offsetY+") "+
-                                "scale("+scale_factor+") "+
-                                "translate(-"+offsetX+",-"+offsetY+ ")")
+              .attr('transform',"translate("+offsets['x']+ ","+offsets['y']+") "+
+                                "scale("+current_scale*scale_factor+") "+
+                                "translate(-"+offsets['x']+",-"+offsets['y']+ ")")
             .transition()
               .duration(400)
               .ease('bounce')
-              .attr('transform',"translate("+offsetX+ ","+offsetY+") "+
-                                "scale("+1.0/scale_factor+") "+
-                                "translate(-"+offsetX+",-"+offsetY+ ")")
-        }, 10);
+              .attr('transform',"translate("+offsets['x']+ ","+offsets['y']+") "+
+                                "scale("+current_scale/scale_factor+") "+
+                                "translate(-"+offsets['x']+",-"+offsets['y']+ ")")
+        }, 100);
 
         // make a new heart for the transparent "echo"
         setTimeout(function() {
@@ -163,27 +209,21 @@
             .attr("id", "heartecho")
             .attr("d", line(data));
 
-          var selection = d3.select('path#heartecho');
-
-          var selection_box = selection.node().getBBox();
-          var offsetX = parseFloat(selection_box["x"])+
-            parseFloat(selection_box["width"]/2.0);
-          var offsetY = parseFloat(selection_box["y"])+
-            parseFloat(selection_box["height"]/2.0);
+          var offsets_echo = getOffsets(d3.select('path#heartecho'));
 
           d3.select("path#heartecho")
             .transition()
-              .attr('transform',"translate("+offsetX+ ","+offsetY+") "+
-                                    "scale(1.2) "+
-                                    "translate(-"+offsetX+",-"+offsetY+ ")")
+              .attr('transform',"translate("+offsets_echo['x']+ ","+offsets_echo['y']+") "+
+                                    "scale("+(current_scale*1.2)+") "+
+                                    "translate(-"+offsets_echo['x']+",-"+offsets_echo['y']+ ")")
             .transition()
               .duration(600)
-              .attr('transform',"translate("+offsetX+ ","+offsetY+") "+
-                                    "scale(1.8) "+
-                                    "translate(-"+offsetX+",-"+offsetY+ ")")
+              .attr('transform',"translate("+offsets_echo['x']+ ","+offsets_echo['y']+") "+
+                                    "scale("+(current_scale*1.8)+") "+
+                                    "translate(-"+offsets_echo['x']+",-"+offsets_echo['y']+ ")")
               .style('opacity',0)
             .remove();
-        }, 10);
+        }, 100);
       }
     });
   }, 1000)
