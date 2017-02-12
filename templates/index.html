@@ -12,7 +12,7 @@
     var Synth = new AudioSynth;
     var piano = Synth.createInstrument('piano');
     var notes = ['C','D','E','F','G','A','B'];
-    var octaves = [1,2,3,4,5,6,7];
+    var octaves = [3,4,5];
 
     var all_notes = [];
 
@@ -50,14 +50,14 @@
   // -----------------------------------
 
   // create svg
-  var minSize = Math.min(500,$(document).width() - 40,$(document).height() - 40);
+  var minSize = Math.min(500,$(window).width() - 40,$(window).height() - 40);
   var w = minSize;
   var h = minSize;
 
   var svg = d3.select("#main")
     .append("svg")
-    .attr("width", $(document).width())
-    .attr("height", $(document).height());
+    .attr("width", $(window).width() - 100)
+    .attr("height", $(window).height() - 150);
 
   // create array of heart data points
   //Formula from http://mathworld.wolfram.com/HeartCurve.html
@@ -159,7 +159,7 @@
               $(this).css('opacity', 1);
             }
             else {
-              $(this).css('opacity', (0.8-.05*index));
+              $(this).css('opacity', (0.8-.03*index));
             }
           }
           else {
@@ -173,7 +173,11 @@
         console.log(Math.round(sentiment_scaled));
         var note = all_notes[Math.round(sentiment_scaled)];
 
-        piano.play(note['note'], note['octave'], 2);
+        // random
+        // piano.play(note['note'], note['octave'], Math.random() * (3 - .5) + .5);
+
+        // by message size
+        piano.play(note['note'], note['octave'], res['size']/100000);
 
         var current_scale = 0;
         setTimeout(function() {
