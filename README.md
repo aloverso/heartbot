@@ -13,6 +13,10 @@ Additionally, the heart changes size to represent total size of email traffic in
 
 Heartbot presents a simple, clean interface for seeing one representation of Olin emails.  It has no statistics or data tracking (yet), and is simply a real-time metric of what invisible packets of thought are flying across the network cables at that time.  Additionally, it turns the mundane frustration of heavy email traffic into a musical experience.  The dread of finding a full inbox is offset, at least slightly, by knowing that many emails leads to better music from Heartbot.
 
+## Heartbot in Action
+
+![heartbot in action](screenshot.png)
+
 ## To Run
 
 Make sure you have redis installed and available on `localhost:6379` (the default).

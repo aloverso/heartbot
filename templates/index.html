@@ -136,8 +136,8 @@
         }
 
         var offsets_size = getOffsets(d3.select("path#heart"))
-        var scale = total_bytes/200000;
-        if (scale>1.8) {scale=1.8;}
+        var scale = total_bytes/1000000;
+        if (scale>1.5) {scale=1.5;}
         if (scale<.1) {scale=.1;}
 
         // scale heart based on size
